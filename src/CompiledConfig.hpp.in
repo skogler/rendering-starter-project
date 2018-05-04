@@ -1,0 +1,6 @@
+#pragma once
+
+namespace CompiledConfig
+{
+  constexpr char* PROJECT_NAME = "@CMAKE_PROJECT_NAME@";
+};
