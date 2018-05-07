@@ -12,8 +12,10 @@ endif()
 
 target_include_directories(MyApplication PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(MyApplication PRIVATE
+    Magnum::Application
+	Magnum::GL
     Magnum::Magnum
     Magnum::Shaders
-    Magnum::GlfwApplication
 	MagnumImGui
+	nativefiledialog
 )

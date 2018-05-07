@@ -24,14 +24,15 @@
 
 #include <Corrade/Utility/Resource.h>
 
-#include <Magnum/Context.h>
+#include <Magnum/GL/Context.h>
 #include <Magnum/DefaultFramebuffer.h>
 #include <Magnum/ImageView.h>
-#include <Magnum/PixelFormat.h>
-#include <Magnum/Renderer.h>
-#include <Magnum/Shader.h>
-#include <Magnum/TextureFormat.h>
-#include <Magnum/Version.h>
+#include <Magnum/GL/PixelFormat.h>
+#include <Magnum/GL/Renderer.h>
+#include <Magnum/GL/Shader.h>
+#include <Magnum/GL/TextureFormat.h>
+#include <Magnum/GL/Version.h>
+#include <Magnum/Mesh.h>
 
 #include <imgui.h>
 
@@ -430,15 +431,15 @@ color = Frag_Color * texture( Texture, Frag_UV.st);
 )";
 
 #ifndef MAGNUM_TARGET_GLES
-    const Version version = Context::current().supportedVersion(
-        {Version::GL330, Version::GL310, Version::GL300, Version::GL210});
+    const GL::Version version = GL::Context::current().supportedVersion(
+        { GL::Version::GL330, GL::Version::GL310, GL::Version::GL300, GL::Version::GL210});
 #else
     const Version version = Context::current().supportedVersion(
         {Version::GLES300, Version::GLES200});
 #endif
 
-    Shader vert{version, Shader::Type::Vertex};
-    Shader frag{version, Shader::Type::Fragment};
+    GL::Shader vert{version, Shader::Type::Vertex};
+    GL::Shader frag{version, Shader::Type::Fragment};
 
 #ifndef MAGNUM_TARGET_GLES
     if (version != Version::GL210)
@@ -457,7 +458,7 @@ color = Frag_Color * texture( Texture, Frag_UV.st);
     vert.addSource({vertex_shader});
     frag.addSource({fragment_shader});
 
-    CORRADE_INTERNAL_ASSERT_OUTPUT(Shader::compile({vert, frag}));
+    CORRADE_INTERNAL_ASSERT_OUTPUT(GL::Shader::compile({vert, frag}));
 
     attachShaders({vert, frag});
 

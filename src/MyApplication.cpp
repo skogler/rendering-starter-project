@@ -2,16 +2,19 @@
 
 #include "MagnumImGui.hpp"
 
-#include <Magnum/DefaultFramebuffer.h>
 #include <Magnum/Platform/GlfwApplication.h>
 
+#include <Magnum/GL/Context.h>
+#include <Magnum/GL/DefaultFramebuffer.h>
+#include <Magnum/GL/DebugOutput.h>
+#include <Magnum/GL/Renderer.h>
+#include <Magnum/GL/Version.h>
+
 #include <Corrade/Corrade.h>
-#include <Magnum/Context.h>
-#include <Magnum/DebugOutput.h>
 #include <Magnum/Math/Color.h>
-#include <Magnum/Renderer.h>
-#include <Magnum/Version.h>
 #include <imgui.h>
+#include <nfd.h>
+#include <iostream>
 
 using namespace Magnum;
 
@@ -42,10 +45,11 @@ protected:
 
 MyApplication::MyApplication(const Arguments& arguments)
     : Platform::Application{
-          arguments, Configuration{}
-                         .setWindowFlags(Configuration::WindowFlag::Resizable |
-                                         Configuration::WindowFlag::Maximized)
-                         .setTitle(CompiledConfig::PROJECT_NAME)
+          arguments, 
+		  
+		  Configuration{}.setWindowFlags(Configuration::WindowFlag::Resizable | Configuration::WindowFlag::Maximized)
+                         .setTitle(CompiledConfig::PROJECT_NAME),
+		GLConfiguration{}
 #ifndef NDEBUG
                          .setFlags(Configuration::Flag::Debug)
 #endif
@@ -53,22 +57,21 @@ MyApplication::MyApplication(const Arguments& arguments)
 {
     using namespace Magnum::Math::Literals;
 #ifndef NDEBUG
-    Renderer::enable(Renderer::Feature::DebugOutput);
-    Renderer::enable(Renderer::Feature::DebugOutputSynchronous);
-    Magnum::DebugOutput::setDefaultCallback();
+    GL::Renderer::enable(GL::Renderer::Feature::DebugOutput);
+    GL::Renderer::enable(GL::Renderer::Feature::DebugOutputSynchronous);
+    GL::DebugOutput::setDefaultCallback();
 #endif
-
-    Renderer::setClearColor(0xa5c9ea_rgbf);
+	GL::Renderer::setClearColor(0xa5c9ea_rgbf);
     m_timeline.start();
-    m_imgui.resizeEvent(windowSize(), defaultFramebuffer.viewport().size());
+    m_imgui.resizeEvent(windowSize(), GL::defaultFramebuffer.viewport().size());
 }
 
 void MyApplication::drawEvent()
 {
     m_timeline.nextFrame();
-    defaultFramebuffer.clear(FramebufferClear::Color | FramebufferClear::Depth);
+	GL::defaultFramebuffer.clear(FramebufferClear::Color | FramebufferClear::Depth);
     m_imgui.update(m_timeline.previousFrameDuration());
-    const auto vp = defaultFramebuffer.viewport();
+    const auto vp = GL::defaultFramebuffer.viewport();
 
     ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiSetCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(vp.right(), 0));
@@ -79,7 +82,7 @@ void MyApplication::drawEvent()
     {
         if (ImGui::BeginMenu("File"))
         {
-            if (ImGui::MenuItem("Open..", "Ctrl+O"))
+            if (ImGui::MenuItem("Open...", "Ctrl+O"))
             {
                 open();
             }
@@ -91,6 +94,10 @@ void MyApplication::drawEvent()
             {
                 close();
             }
+			if (ImGui::MenuItem("Quit", "Ctrl+Q"))
+			{
+				exit();
+			}
             ImGui::EndMenu();
         }
         ImGui::EndMenuBar();
@@ -105,8 +112,8 @@ void MyApplication::drawEvent()
 
 void MyApplication::viewportEvent(const Vector2i& size)
 {
-    defaultFramebuffer.setViewport({{}, size});
-    m_imgui.resizeEvent(windowSize(), defaultFramebuffer.viewport().size());
+    GL::defaultFramebuffer.setViewport({{}, size});
+    m_imgui.resizeEvent(windowSize(), GL::defaultFramebuffer.viewport().size());
     redraw();
 }
 
@@ -158,6 +165,12 @@ void MyApplication::save()
 
 void MyApplication::open()
 {
+	nfdchar_t *selected_path = nullptr;
+	nfdresult_t result = NFD_OpenDialog(nullptr, nullptr, &selected_path);
+	if (result == NFD_OKAY) {
+		std::cout << selected_path << std::endl;
+		free(selected_path);
+	}
 }
 
 void MyApplication::close()
